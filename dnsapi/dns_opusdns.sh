@@ -102,7 +102,7 @@ dns_opusdns_rm() {
   OPUSDNS_API_Key="${OPUSDNS_API_Key:-$(_readaccountconf_mutable OPUSDNS_API_Key)}"
   OPUSDNS_API_Endpoint="${OPUSDNS_API_Endpoint:-$(_readaccountconf_mutable OPUSDNS_API_Endpoint)}"
   OPUSDNS_TTL="${OPUSDNS_TTL:-$(_readaccountconf_mutable OPUSDNS_TTL)}"
-  
+
   if [ -z "$OPUSDNS_API_Endpoint" ]; then
     OPUSDNS_API_Endpoint="$OPUSDNS_API_Endpoint_Default"
   fi
@@ -150,11 +150,11 @@ _get_zone() {
 
   # Get all zones from OpusDNS with pagination support
   export _H1="X-Api-Key: $OPUSDNS_API_Key"
-  
+
   zones=""
   page=1
   has_more=1
-  
+
   while [ $has_more -eq 1 ]; do
     _debug2 "Fetching zones page $page"
     response=$(_get "$OPUSDNS_API_Endpoint/v1/dns?page=$page&page_size=100")
@@ -212,7 +212,7 @@ $page_zones"
     zone_with_dot="${zone}."
     if _endswith "$domain." "$zone_with_dot"; then
       zone_length=${#zone}
-      if [ $zone_length -gt $_zone_length ]; then
+      if [ "$zone_length" -gt "$_zone_length" ]; then
         _zone="$zone"
         _zone_length=$zone_length
       fi
@@ -227,10 +227,10 @@ $page_zones"
 
   # Calculate record name (subdomain part)
   # Use parameter expansion instead of sed to avoid regex metacharacter issues
-  _record_name="${domain%.${_zone}}"
+  _record_name="${domain%."${_zone}"}"
   # Handle case where domain equals zone (remove trailing dot if present)
   if [ "$_record_name" = "$domain" ]; then
-    _record_name="${domain%${_zone}}"
+    _record_name="${domain%"${_zone}"}"
     _record_name="${_record_name%.}"
   fi
   
@@ -343,9 +343,9 @@ _opusdns_wait_for_propagation() {
     # Check all OpusDNS authoritative nameservers
     for ns in $nameservers; do
       if _exists dig; then
-        result=$(dig @$ns +short "$fulldomain" TXT 2>/dev/null | tr -d '"')
+        result=$(dig @"$ns" +short "$fulldomain" TXT 2>/dev/null | tr -d '"')
       elif _exists nslookup; then
-        result=$(nslookup -type=TXT "$fulldomain" $ns 2>/dev/null | grep -A1 "text =" | tail -n1 | tr -d '"' | sed 's/^[[:space:]]*//')
+        result=$(nslookup -type=TXT "$fulldomain" "$ns" 2>/dev/null | grep -A1 "text =" | tail -n1 | tr -d '"' | sed 's/^[[:space:]]*//')
       else
         _err "Neither dig nor nslookup found. Cannot verify DNS propagation."
         return 1
