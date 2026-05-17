@@ -37,8 +37,8 @@ jobs:
            TEST_PREFERRED_CHAIN: (STAGING)
            ACME_USE_WGET: 1
          #- TEST_ACME_Server: "ZeroSSL.com"
-         #  CA_ECDSA: "ZeroSSL ECC Domain Secure Site CA"
-         #  CA: "ZeroSSL RSA Domain Secure Site CA"
+         #  CA_ECDSA: "ZeroSSL ECC DV SSL CA 2"
+         #  CA: "ZeroSSL RSA DV SSL CA 2"
          #  CA_EMAIL: "githubtest@acme.sh"
          #  TEST_PREFERRED_CHAIN: ""
     runs-on: ubuntu-latest
@@ -52,7 +52,7 @@ jobs:
       ACME_USE_WGET: ${{ matrix.ACME_USE_WGET }}
     steps:
     - uses: actions/checkout@v6
-    - uses: vmactions/cf-tunnel@v0
+    - uses: anyvm-org/cf-tunnel@v0
       id: tunnel
       with:
         protocol: http
@@ -63,6 +63,7 @@ jobs:
       run: cd .. && git clone --depth=1 https://github.com/acmesh-official/acmetest.git  && cp -r acme.sh acmetest/
     - uses: vmactions/openbsd-vm@v1
       with:
+        debug-on-error: ${{ vars.DEBUG_ON_ERROR }}
         envs: 'TEST_LOCAL TestingDomain TEST_ACME_Server CA_ECDSA CA CA_EMAIL TEST_PREFERRED_CHAIN ACME_USE_WGET'
         nat: |
           "8080": "80"
